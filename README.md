@@ -1,5 +1,6 @@
 # ZombieSharp
- 
+<b>This project is linux focusing as Windows has a lot issues with Virtual Functions. However, if Windows issue is solved, the plugin will mostly work fine.</b>
+
 Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functions from the previous SourcePawn Zombie:Reloaded plugin. You can say this is the Zombie:Reloaded remake but in C#. Here is the list of features.
 
 ### Feature of Zombie-Sharp
@@ -14,6 +15,8 @@ Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functi
 - [x] ZTeleport Module
 - [x] Configuration for Infection Settings (Previously: ConVar)
 - [x] Repeat Killer Module (Obsolete now)
+- [ ] Top Defender
+- [ ] Cash on damage zombie
 
 ### Requirements
 - [Metamode:Source](https://www.sourcemm.net/downloads.php/?branch=master) Dev build (2.x).
@@ -24,6 +27,15 @@ Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functi
 
 ### Recommend Plugin
 - [NoBlock](https://github.com/ManifestManah/NoBlock) for Zombie Escape mode.
+
+### How to Build
+1. Install [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) and [Git](https://git-scm.com/downloads).
+2. Open up Windows Powershell and follow these command
+```bash
+git clone https://github.com/Oylneechan/ZombieSharp
+cd ZombieSharp
+dotnet build
+```
 
 ### Installation
 1. Install a Metamod and CounterStrikeSharp with Runtime build.
