@@ -69,11 +69,8 @@ namespace ZombieSharp
         private void OnMapStart(string mapname)
         {
             WeaponInitialize();
-            bool load = SettingsIntialize(mapname);
+            SettingsIntialize(mapname);
             bool classes = PlayerClassIntialize();
-
-            if (!load)
-                ConfigSettings = new GameSettings();
 
             if (classes)
                 PrecachePlayerModel();
@@ -96,10 +93,10 @@ namespace ZombieSharp
         {
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (warmup && !ConfigSettings.EnableOnWarmup)
+            if (warmup && !CVAR_EnableOnWarmup.Value)
                 Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} The current server has disabled infection in warmup round.");
 
-            if (!warmup || ConfigSettings.EnableOnWarmup)
+            if (!warmup || CVAR_EnableOnWarmup.Value)
                 InfectOnRoundFreezeEnd();
 
             return HookResult.Continue;
@@ -109,7 +106,7 @@ namespace ZombieSharp
         {
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (!warmup || ConfigSettings.EnableOnWarmup)
+            if (!warmup || CVAR_EnableOnWarmup.Value)
             {
                 ToggleRespawn(true, true);
 
@@ -133,7 +130,7 @@ namespace ZombieSharp
         {
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (!warmup || ConfigSettings.EnableOnWarmup)
+            if (!warmup || CVAR_EnableOnWarmup.Value)
             {
                 // Reset Client Status
                 AddTimer(0.2f, () =>
@@ -185,7 +182,7 @@ namespace ZombieSharp
 
                 if (IsClientZombie(client))
                 {
-                    if (ConfigSettings.CashOnDamage)
+                    if (CVAR_CashOnDamage.Value)
                         DamageCash(attacker, dmgHealth);
 
                     FindWeaponItemDefinition(attacker.PlayerPawn.Value.WeaponServices.ActiveWeapon, weapon);
@@ -221,9 +218,9 @@ namespace ZombieSharp
 
         public void RespawnPlayer(CCSPlayerController client)
         {
-            if (ConfigSettings.RespawnTimer > 0.0f)
+            if (CVAR_RespawnTimer.Value > 0.0f)
             {
-                AddTimer(ConfigSettings.RespawnTimer, () =>
+                AddTimer(CVAR_RespawnTimer.Value, () =>
                 {
                     // Server.PrintToChatAll($"Player {client.PlayerName} should be respawn here.");
                     RespawnClient(client);
@@ -237,7 +234,7 @@ namespace ZombieSharp
 
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (!warmup || ConfigSettings.EnableOnWarmup)
+            if (!warmup || CVAR_EnableOnWarmup.Value)
             {
                 AddTimer(0.2f, () =>
                 {
@@ -271,7 +268,7 @@ namespace ZombieSharp
 
             var warmup = GetGameRules().WarmupPeriod;
 
-            if (!warmup || ConfigSettings.EnableOnWarmup)
+            if (!warmup || CVAR_EnableOnWarmup.Value)
                 JumpBoost(client);
 
             return HookResult.Continue;
@@ -282,7 +279,7 @@ namespace ZombieSharp
             var classData = PlayerClassDatas.PlayerClasses;
             var activeclass = ClientPlayerClass[client.Slot].ActiveClass;
 
-            if (!GetGameRules().WarmupPeriod || ConfigSettings.EnableOnWarmup)
+            if (!GetGameRules().WarmupPeriod || CVAR_EnableOnWarmup.Value)
             {
                 // if jump boost can apply after client is already jump.
                 AddTimer(0.0f, () =>
@@ -290,10 +287,10 @@ namespace ZombieSharp
                     if (activeclass == null)
                     {
                         if (IsClientHuman(client))
-                            activeclass = ConfigSettings.Human_Default;
+                            activeclass = CVAR_Human_Default.Value;
 
                         else
-                            activeclass = ConfigSettings.Zombie_Default;
+                            activeclass = CVAR_Zombie_Default.Value;
                     }
 
                     if (classData.ContainsKey(activeclass))

@@ -145,7 +145,7 @@ namespace ZombieSharp
 
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (warmup && !ConfigSettings.EnableOnWarmup)
+            if (warmup && !CVAR_EnableOnWarmup.Value)
             {
                 if (client.DesignerName == "player" && attackInfo.Value.DesignerName == "player")
                 {
