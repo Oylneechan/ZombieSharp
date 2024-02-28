@@ -134,7 +134,7 @@ namespace ZombieSharp
                 if (!warmup)
                 {
                     var roundtimeCvar = ConVar.Find("mp_roundtime");
-                    RoundTimer = AddTimer(roundtimeCvar.GetPrimitiveValue<int>() * 60f, TerminateRoundTimeOut);
+                    RoundTimer = AddTimer(roundtimeCvar.GetPrimitiveValue<float>() * 60f, TerminateRoundTimeOut);
                 }
 
                 InfectOnRoundFreezeEnd();
