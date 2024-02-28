@@ -9,7 +9,7 @@ namespace ZombieSharp
     {
         public override string ModuleName => "Zombie Sharp";
         public override string ModuleAuthor => "Oylsister, Kurumi, Sparky";
-        public override string ModuleVersion => "1.0.2";
+        public override string ModuleVersion => "1.1.0";
         public override string ModuleDescription => "Infection/survival style gameplay for CS2 in C#";
 
         public bool ZombieSpawned;
@@ -105,6 +105,12 @@ namespace ZombieSharp
 
             int maxmz = (int)Math.Ceiling(allplayer / CVAR_MotherZombieRatio.Value);
 
+            if (CVAR_MinimumMotherZombie.Value > 0 && maxmz < CVAR_MinimumMotherZombie.Value)
+                maxmz = CVAR_MinimumMotherZombie.Value;
+
+            else if (CVAR_MinimumMotherZombie.Value <= 0 && maxmz <= 0)
+                maxmz = 1;
+
             // if it is less than 1 then you need at least 1 mother zombie.
             if (maxmz < 1)
                 maxmz = 1;
@@ -180,13 +186,15 @@ namespace ZombieSharp
             }
 
             // Create an event for killfeed
-            if (attacker != null)
+            if (attacker != null && attacker.IsValid)
             {
                 EventPlayerDeath eventDeath = new EventPlayerDeath(false);
                 eventDeath.Userid = client;
                 eventDeath.Attacker = attacker;
                 eventDeath.Weapon = "knife";
                 eventDeath.FireEvent(false);
+
+                TopDefenderOnInfect(attacker);
             }
 
             // Remove all weapon.
@@ -199,8 +207,6 @@ namespace ZombieSharp
                 ForceDropAllWeapon(client);
 
             client.GiveNamedItem("weapon_knife");
-
-            Schema.SetSchemaValue<bool>(client.PlayerPawn.Value.WeaponServices.Handle, "CPlayer_WeaponServices", "m_bAllowSwitchToNoWeapon", false);
 
             // swith to terrorist side.
             client.SwitchTeam(CsTeam.Terrorist);
@@ -360,8 +366,6 @@ namespace ZombieSharp
 
         public void StripAllWeapon(CCSPlayerController client)
         {
-            Schema.SetSchemaValue<bool>(client.PlayerPawn.Value.WeaponServices.Handle, "CPlayer_WeaponServices", "m_bAllowSwitchToNoWeapon", true);
-
             if (client == null || !client.IsValid)
                 return;
 
@@ -381,12 +385,9 @@ namespace ZombieSharp
                     client.ExecuteClientCommand($"slot{weaponslot + 1}");
                     client.DropActiveWeapon();
                 }
-
-                else
-                {
-                    weapon.Value.AcceptInput("Kill");
-                }
             }
+
+            client.RemoveWeapons();
         }
 
         public void ForceDropAllWeapon(CCSPlayerController client)
@@ -402,8 +403,12 @@ namespace ZombieSharp
 
                 if (vdata!.GearSlot != gear_slot_t.GEAR_SLOT_KNIFE)
                 {
+                    /*
                     client.ExecuteClientCommand("slot3");
                     client.ExecuteClientCommand($"slot{(int)vdata!.GearSlot + 1}");
+                    */
+
+                    Schema.SetSchemaValue(client.PlayerPawn.Value.WeaponServices.Handle, "CPlayer_WeaponServices", "m_hActiveWeapon", weapons[i]);
                     client.DropActiveWeapon();
                 }
             }

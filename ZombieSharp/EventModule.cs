@@ -1,7 +1,12 @@
+using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+
 namespace ZombieSharp
 {
     public partial class ZombieSharp
     {
+        public CounterStrikeSharp.API.Modules.Timers.Timer RoundTimer = null;
+
         public void EventInitialize()
         {
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
@@ -11,6 +16,7 @@ namespace ZombieSharp
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerSpawn>(OnPlayerSpawn);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+            RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
             RegisterEventHandler<EventPlayerJump>(OnPlayerJump);
             RegisterEventHandler<EventCsPreRestart>(OnPreRestart);
 
@@ -39,6 +45,10 @@ namespace ZombieSharp
             PlayerSettingsOnPutInServer(player);
 
             WeaponOnClientPutInServer(clientindex);
+
+            ClientProtected.Add(clientindex, new());
+
+            TopDefenderOnPutInServer(player);
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
@@ -46,6 +56,23 @@ namespace ZombieSharp
             var client = @event.Userid;
 
             PlayerSettingsAuthorized(client).Wait();
+            return HookResult.Continue;
+        }
+
+        private HookResult OnPlayerTeam(EventPlayerTeam @event, GameEventInfo info)
+        {
+            if (!CVAR_RespawnLate.Value)
+                return HookResult.Continue;
+
+            var client = @event.Userid;
+            var team = @event.Team;
+
+            if (client.IsBot || !client.IsValid)
+                return HookResult.Continue;
+
+            if (team > (int)CsTeam.Spectator)
+                AddTimer(1.0f, () => { RespawnClient(client); });
+
             return HookResult.Continue;
         }
 
@@ -64,6 +91,10 @@ namespace ZombieSharp
             RegenTimer.Remove(clientindex);
 
             WeaponOnClientDisconnect(clientindex);
+
+            ClientProtected.Remove(clientindex);
+
+            TopDefenderOnDisconnect(player);
         }
 
         private void OnMapStart(string mapname)
@@ -77,6 +108,8 @@ namespace ZombieSharp
 
             hitgroupLoad = HitGroupIntialize();
             RepeatKillerOnMapStart();
+
+            Server.ExecuteCommand("mp_ignore_round_win_conditions 1");
         }
 
         private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
@@ -97,7 +130,15 @@ namespace ZombieSharp
                 Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} The current server has disabled infection in warmup round.");
 
             if (!warmup || CVAR_EnableOnWarmup.Value)
+            {
+                if (!warmup)
+                {
+                    var roundtimeCvar = ConVar.Find("mp_roundtime");
+                    RoundTimer = AddTimer(roundtimeCvar.GetPrimitiveValue<int>() * 60f, TerminateRoundTimeOut);
+                }
+
                 InfectOnRoundFreezeEnd();
+            }
 
             return HookResult.Continue;
         }
@@ -129,6 +170,11 @@ namespace ZombieSharp
         private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
             bool warmup = GetGameRules().WarmupPeriod;
+
+            if (RoundTimer != null)
+                RoundTimer.Kill();
+
+            TopDenfederOnRoundEnd();
 
             if (!warmup || CVAR_EnableOnWarmup.Value)
             {
@@ -174,7 +220,7 @@ namespace ZombieSharp
                 if (!attacker.IsValid || !client.IsValid)
                     return HookResult.Continue;
 
-                if (IsClientZombie(attacker) && IsClientHuman(client) && string.Equals(weapon, "knife"))
+                if (IsClientZombie(attacker) && IsClientHuman(client) && string.Equals(weapon, "knife") && !ClientProtected[client.Slot].Protected)
                 {
                     // Server.PrintToChatAll($"{client.PlayerName} Infected by {attacker.PlayerName}");
                     InfectClient(client, attacker);
@@ -188,6 +234,7 @@ namespace ZombieSharp
                     FindWeaponItemDefinition(attacker.PlayerPawn.Value.WeaponServices.ActiveWeapon, weapon);
 
                     KnockbackClient(client, attacker, dmgHealth, weapon, hitgroup);
+                    TopDefenderOnPlayerHurt(attacker, dmgHealth);
                 }
             }
 
@@ -222,6 +269,9 @@ namespace ZombieSharp
             {
                 AddTimer(CVAR_RespawnTimer.Value, () =>
                 {
+                    if (CVAR_RespawnProtect.Value && CVAR_RespawnTeam.Value == 1)
+                        ClientProtected[client.Slot].Protected = true;
+
                     // Server.PrintToChatAll($"Player {client.PlayerName} should be respawn here.");
                     RespawnClient(client);
                 });
@@ -244,7 +294,17 @@ namespace ZombieSharp
                     if (ZombieSpawned)
                     {
                         // Server.PrintToChatAll($"Infect {client.PlayerName} on Spawn.");
-                        InfectClient(client, null, false, false, true);
+                        if (CVAR_RespawnTeam.Value == 0)
+                            InfectClient(client, null, false, false, true);
+
+                        else if (CVAR_RespawnTeam.Value == 1)
+                            HumanizeClient(client);
+
+                        if (ClientProtected[client.Slot].Protected)
+                        {
+                            AddTimer(CVAR_RespawnProtectTime.Value, () => { ResetProtectedClient(client); });
+                            RespawnProtectClient(client);
+                        }
                     }
 
                     // else they're human!
@@ -308,6 +368,37 @@ namespace ZombieSharp
             var money = client.InGameMoneyServices.Account;
             client.InGameMoneyServices.Account = money + dmgHealth;
             Utilities.SetStateChanged(client, "CCSPlayerController", "m_pInGameMoneyServices");
+        }
+
+        private void ResetProtectedClient(CCSPlayerController client)
+        {
+            if (!client.IsValid)
+                return;
+
+            ClientProtected[client.Slot].Protected = false;
+            RespawnProtectClient(client, true);
+        }
+
+        private void TerminateRoundTimeOut()
+        {
+            int team = CVAR_TimeoutWinner.Value;
+
+            CCSGameRules gameRules = GetGameRules();
+
+            if (team == 2)
+            {
+                gameRules.TerminateRound(5f, RoundEndReason.TerroristsWin);
+            }
+
+            else if (team == 3)
+            {
+                gameRules.TerminateRound(5f, RoundEndReason.CTsWin);
+            }
+
+            else
+            {
+                gameRules.TerminateRound(5f, RoundEndReason.RoundDraw);
+            }
         }
 
         private void RemoveRoundObjective()
