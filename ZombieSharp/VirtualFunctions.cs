@@ -143,9 +143,16 @@ namespace ZombieSharp
                 }
             }
 
+            var controller = player(client);
+
+            if (CVAR_RespawnProtect.Value && ClientProtected[controller.Slot].Protected && controller.IsValid)
+            {
+                damageInfo.Damage = 0;
+            }
+
             bool warmup = GetGameRules().WarmupPeriod;
 
-            if (warmup && !ConfigSettings.EnableOnWarmup)
+            if (warmup && !CVAR_EnableOnWarmup.Value)
             {
                 if (client.DesignerName == "player" && attackInfo.Value.DesignerName == "player")
                 {

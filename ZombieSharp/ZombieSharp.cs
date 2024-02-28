@@ -4,12 +4,12 @@ using ZombieSharp.Helpers;
 
 namespace ZombieSharp
 {
-    [MinimumApiVersion(159)]
+    [MinimumApiVersion(175)]
     public partial class ZombieSharp : BasePlugin
     {
         public override string ModuleName => "Zombie Sharp";
         public override string ModuleAuthor => "Oylsister, Kurumi, Sparky";
-        public override string ModuleVersion => "1.0.2";
+        public override string ModuleVersion => "1.1.0";
         public override string ModuleDescription => "Infection/survival style gameplay for CS2 in C#";
 
         public bool ZombieSpawned;
@@ -46,9 +46,9 @@ namespace ZombieSharp
 
         public void InfectOnRoundFreezeEnd()
         {
-            Countdown = (int)ConfigSettings.FirstInfectionTimer;
+            Countdown = (int)CVAR_FirstInfectionTimer.Value;
             g_hCountdown = AddTimer(1.0f, Timer_Countdown, TimerFlags.REPEAT);
-            g_hInfectMZ = AddTimer(ConfigSettings.FirstInfectionTimer + 1.0f, MotherZombieInfect);
+            g_hInfectMZ = AddTimer(CVAR_FirstInfectionTimer.Value + 1.0f, MotherZombieInfect);
         }
 
         public void Timer_Countdown()
@@ -103,7 +103,13 @@ namespace ZombieSharp
 
             int alreadymade = 0;
 
-            int maxmz = (int)Math.Ceiling(allplayer / ConfigSettings.MotherZombieRatio);
+            int maxmz = (int)Math.Ceiling(allplayer / CVAR_MotherZombieRatio.Value);
+
+            if (CVAR_MinimumMotherZombie.Value > 0 && maxmz < CVAR_MinimumMotherZombie.Value)
+                maxmz = CVAR_MinimumMotherZombie.Value;
+
+            else if (CVAR_MinimumMotherZombie.Value <= 0 && maxmz <= 0)
+                maxmz = 1;
 
             // if it is less than 1 then you need at least 1 mother zombie.
             if (maxmz < 1)
@@ -169,9 +175,9 @@ namespace ZombieSharp
             {
                 ZombiePlayers[client.Slot].MotherZombieStatus = MotherZombieFlags.CHOSEN;
 
-                ApplyClass = ConfigSettings.Mother_Zombie;
+                ApplyClass = CVAR_Mother_Zombie.Value;
 
-                if (ConfigSettings.TeleportMotherZombie)
+                if (CVAR_TeleportMotherZombie.Value)
                     ZTele_TeleportClientToSpawn(client);
             }
             else
@@ -180,17 +186,19 @@ namespace ZombieSharp
             }
 
             // Create an event for killfeed
-            if (attacker != null)
+            if (attacker != null && attacker.IsValid)
             {
                 EventPlayerDeath eventDeath = new EventPlayerDeath(false);
                 eventDeath.Userid = client;
                 eventDeath.Attacker = attacker;
                 eventDeath.Weapon = "knife";
                 eventDeath.FireEvent(false);
+
+                TopDefenderOnInfect(attacker);
             }
 
             // Remove all weapon.
-            var dropmode = ConfigSettings.ZombieDrop;
+            var dropmode = CVAR_ZombieDrop.Value;
 
             if (dropmode == 0)
                 StripAllWeapon(client);
@@ -395,8 +403,12 @@ namespace ZombieSharp
 
                 if (vdata!.GearSlot != gear_slot_t.GEAR_SLOT_KNIFE)
                 {
+                    /*
                     client.ExecuteClientCommand("slot3");
                     client.ExecuteClientCommand($"slot{(int)vdata!.GearSlot + 1}");
+                    */
+
+                    Schema.SetSchemaValue(client.PlayerPawn.Value.WeaponServices.Handle, "CPlayer_WeaponServices", "m_hActiveWeapon", weapons[i]);
                     client.DropActiveWeapon();
                 }
             }
