@@ -15,8 +15,8 @@ Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functi
 - [x] ZTeleport Module
 - [x] Configuration for Infection Settings (Previously: ConVar)
 - [x] Repeat Killer Module (Obsolete now)
-- [ ] Top Defender
-- [ ] Cash on damage zombie
+- [x] Top Defender
+- [x] Cash on damage zombie
 
 ### Requirements
 - [Metamode:Source](https://www.sourcemm.net/downloads.php/?branch=master) Dev build (2.x).
@@ -24,6 +24,7 @@ Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functi
 - [MovementUnlocker](https://github.com/Source2ZE/MovementUnlocker) plugin for knockback.
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json/releases) (This is already included in Release)
 - [PrecaheResource](https://github.com/KillStr3aK/ResourcePrecacher/) for Zombie and Player model etc.
+- [Dual Mounting](https://github.com/Source2ZE/MultiAddonManager) for Custom Content for zombie mod.
 
 ### Recommend Plugin
 - [NoBlock](https://github.com/ManifestManah/NoBlock) for Zombie Escape mode.
