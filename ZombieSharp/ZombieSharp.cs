@@ -4,12 +4,12 @@ using ZombieSharp.Helpers;
 
 namespace ZombieSharp
 {
-    [MinimumApiVersion(175)]
+    [MinimumApiVersion(179)]
     public partial class ZombieSharp : BasePlugin
     {
         public override string ModuleName => "Zombie Sharp";
         public override string ModuleAuthor => "Oylsister, Kurumi, Sparky";
-        public override string ModuleVersion => "1.1.0";
+        public override string ModuleVersion => "1.1.2";
         public override string ModuleDescription => "Infection/survival style gameplay for CS2 in C#";
 
         public bool ZombieSpawned;

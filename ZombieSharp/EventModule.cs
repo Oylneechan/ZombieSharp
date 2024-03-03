@@ -7,6 +7,8 @@ namespace ZombieSharp
     {
         public CounterStrikeSharp.API.Modules.Timers.Timer RoundTimer = null;
 
+        bool ClassIsLoaded = false;
+
         public void EventInitialize()
         {
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
@@ -23,6 +25,7 @@ namespace ZombieSharp
             RegisterListener<Listeners.OnClientPutInServer>(OnClientPutInServer);
             RegisterListener<Listeners.OnClientDisconnect>(OnClientDisconnected);
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
+            RegisterListener<Listeners.OnServerPrecacheResources>(OnPrecacheResources);
         }
 
         private void OnClientPutInServer(int client)
@@ -101,15 +104,18 @@ namespace ZombieSharp
         {
             WeaponInitialize();
             SettingsIntialize(mapname);
-            bool classes = PlayerClassIntialize();
-
-            if (classes)
-                PrecachePlayerModel();
+            ClassIsLoaded = PlayerClassIntialize();
 
             hitgroupLoad = HitGroupIntialize();
             RepeatKillerOnMapStart();
 
-            Server.ExecuteCommand("mp_ignore_round_win_conditions 1");
+            Server.ExecuteCommand("mp_ignore_round_win_conditions 0");
+        }
+
+        private void OnPrecacheResources(ResourceManifest manifest)
+        {
+            if (ClassIsLoaded)
+                PrecachePlayerModel(manifest);
         }
 
         private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
@@ -118,6 +124,14 @@ namespace ZombieSharp
             RespawnTogglerSetup();
 
             Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} The current game mode is the Human vs. Zombie, the zombie goal is to infect all human before time is running out.");
+
+            bool warmup = GetGameRules().WarmupPeriod;
+
+            if (!warmup)
+                Server.ExecuteCommand("mp_ignore_round_win_conditions 1");
+
+            else
+                Server.ExecuteCommand("mp_ignore_round_win_conditions 0");
 
             return HookResult.Continue;
         }
