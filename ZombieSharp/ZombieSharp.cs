@@ -4,12 +4,12 @@ using ZombieSharp.Helpers;
 
 namespace ZombieSharp
 {
-    [MinimumApiVersion(175)]
+    [MinimumApiVersion(179)]
     public partial class ZombieSharp : BasePlugin
     {
         public override string ModuleName => "Zombie Sharp";
         public override string ModuleAuthor => "Oylsister, Kurumi, Sparky";
-        public override string ModuleVersion => "1.1.0";
+        public override string ModuleVersion => "1.1.2";
         public override string ModuleDescription => "Infection/survival style gameplay for CS2 in C#";
 
         public bool ZombieSpawned;
@@ -231,8 +231,10 @@ namespace ZombieSharp
             }
 
             // if all human died then let's end the round.
+            /*
             if (ZombieSpawned)
                 CheckGameStatus();
+            */
 
             // if zombie hasn't spawned yet, then make it true.
             if (!ZombieSpawned)
@@ -316,6 +318,8 @@ namespace ZombieSharp
         {
             if (!ZombieSpawned) return;
 
+            // Server.PrintToChatAll("Terminate is activated here.");
+
             var teams = Utilities.FindAllEntitiesByDesignerName<CTeam>("cs_team_manager");
 
             int human = 0;
@@ -339,14 +343,16 @@ namespace ZombieSharp
                 if (!ZombiePlayers.ContainsKey(client.Slot))
                     continue;
 
-                if (IsClientZombie(client) && IsPlayerAlive(client))
+                if (IsClientZombie(client) && client.LifeState == (byte)LifeState_t.LIFE_ALIVE)
                     zombie++;
 
-                else if (IsClientHuman(client) && IsPlayerAlive(client))
+                else if (IsClientHuman(client) && client.LifeState == (byte)LifeState_t.LIFE_ALIVE)
                     human++;
             }
 
-            if (human <= 0)
+            // Server.PrintToChatAll($"Human = {human}, Zombie = {zombie}");
+
+            if (human <= 0 && zombie > 0)
             {
                 TTeam.Score += 1;
 
@@ -354,7 +360,7 @@ namespace ZombieSharp
                 CCSGameRules gameRules = GetGameRules();
                 gameRules.TerminateRound(5.0f, RoundEndReason.TerroristsWin);
             }
-            else if (zombie <= 0)
+            else if (zombie <= 0 && human > 0)
             {
                 CTTeam.Score += 1;
 
