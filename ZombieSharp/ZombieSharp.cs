@@ -1,5 +1,4 @@
 ﻿using CounterStrikeSharp.API.Core.Attributes;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
 using ZombieSharp.Helpers;
 
 namespace ZombieSharp
@@ -9,7 +8,7 @@ namespace ZombieSharp
     {
         public override string ModuleName => "Zombie Sharp";
         public override string ModuleAuthor => "Oylsister, Kurumi, Sparky";
-        public override string ModuleVersion => "1.1.2";
+        public override string ModuleVersion => "1.1.3";
         public override string ModuleDescription => "Infection/survival style gameplay for CS2 in C#";
 
         public bool ZombieSpawned;
@@ -316,9 +315,7 @@ namespace ZombieSharp
 
         public void CheckGameStatus()
         {
-            if (!ZombieSpawned) return;
-
-            // Server.PrintToChatAll("Terminate is activated here.");
+            //Server.PrintToChatAll("Terminate is activated here.");
 
             var teams = Utilities.FindAllEntitiesByDesignerName<CTeam>("cs_team_manager");
 
@@ -343,14 +340,16 @@ namespace ZombieSharp
                 if (!ZombiePlayers.ContainsKey(client.Slot))
                     continue;
 
-                if (IsClientZombie(client) && client.LifeState == (byte)LifeState_t.LIFE_ALIVE)
+                //Server.PrintToChatAll($"{client.PlayerName} Life state is {client.LifeState} and Pawn is {client.PawnIsAlive}");
+
+                if (IsClientZombie(client) && client.PawnIsAlive)
                     zombie++;
 
-                else if (IsClientHuman(client) && client.LifeState == (byte)LifeState_t.LIFE_ALIVE)
+                else if (IsClientHuman(client) && client.PawnIsAlive)
                     human++;
             }
 
-            // Server.PrintToChatAll($"Human = {human}, Zombie = {zombie}");
+            //Server.PrintToChatAll($"Human = {human}, Zombie = {zombie}");
 
             if (human <= 0 && zombie > 0)
             {
@@ -358,7 +357,7 @@ namespace ZombieSharp
 
                 // round end.
                 CCSGameRules gameRules = GetGameRules();
-                gameRules.TerminateRound(5.0f, RoundEndReason.TerroristsWin);
+                gameRules.TerminateRound(5f, RoundEndReason.TerroristsWin);
             }
             else if (zombie <= 0 && human > 0)
             {
@@ -366,7 +365,13 @@ namespace ZombieSharp
 
                 // round end.
                 CCSGameRules gameRules = GetGameRules();
-                gameRules.TerminateRound(5.0f, RoundEndReason.CTsWin);
+                gameRules.TerminateRound(5f, RoundEndReason.CTsWin);
+            }
+
+            else if (zombie <= 0 && human <= 0)
+            {
+                CCSGameRules gameRules = GetGameRules();
+                gameRules.TerminateRound(5f, RoundEndReason.TerroristsWin);
             }
         }
 

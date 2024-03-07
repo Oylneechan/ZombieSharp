@@ -18,6 +18,7 @@ namespace ZombieSharp
             AddCommand("css_dropme", "Test Force All Drop Weapon Command", ForceDropCommand);
             AddCommand("css_myweapon", "Get Client Weapon VData List", MyWeaponCommand);
             AddCommand("css_zspawn", "ZSpawn Command", ZSpawnCommand);
+            AddCommand("css_rr", "Restart Round Command", RestartRoundCommand);
         }
 
         [RequiresPermissions(@"css/slay")]
@@ -219,6 +220,16 @@ namespace ZombieSharp
             {
                 info.ReplyToCommand($"Found: {entity.Entity.Name}");
             }
+        }
+
+        [RequiresPermissions("@css/slay")]
+        private void RestartRoundCommand(CCSPlayerController client, CommandInfo info)
+        {
+            var entity = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+
+            info.ReplyToCommand("Termianted Round");
+
+            entity.TerminateRound(3f, RoundEndReason.RoundDraw);
         }
 
         private void PlayerClassCommand(CCSPlayerController client, CommandInfo info)

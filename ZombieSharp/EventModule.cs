@@ -1,5 +1,4 @@
 using CounterStrikeSharp.API.Modules.Cvars;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
 
 namespace ZombieSharp
 {
@@ -260,6 +259,8 @@ namespace ZombieSharp
             var client = @event.Userid;
             var attacker = @event.Attacker;
             var weapon = @event.Weapon;
+
+            client.PawnIsAlive = false;
 
             if (ZombieSpawned)
             {
