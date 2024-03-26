@@ -122,7 +122,7 @@ namespace ZombieSharp
             RemoveRoundObjective();
             RespawnTogglerSetup();
 
-            Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} The current game mode is the Human vs. Zombie, the zombie goal is to infect all human before time is running out.");
+            Server.PrintToChatAll(Localizer["zsharp_prefix"] + Localizer["game_desc"]);
 
             bool warmup = GetGameRules().WarmupPeriod;
 
@@ -140,7 +140,7 @@ namespace ZombieSharp
             bool warmup = GetGameRules().WarmupPeriod;
 
             if (warmup && !CVAR_EnableOnWarmup.Value)
-                Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} The current server has disabled infection in warmup round.");
+                Server.PrintToChatAll(Localizer["zsharp_prefix"] + Localizer["infect_warmup_disable"]);
 
             if (!warmup || CVAR_EnableOnWarmup.Value)
             {

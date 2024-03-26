@@ -26,7 +26,7 @@ namespace ZombieSharp
         {
             if (info.ArgCount <= 1)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Usage: css_zs_infect [<playername>].");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["usage_infect"]);
                 return;
             }
 
@@ -34,7 +34,7 @@ namespace ZombieSharp
 
             if (targets.Players.Count <= 0)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Couldn't find any client contain with that name.");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["no_target_found"]);
                 return;
             }
 
@@ -46,7 +46,7 @@ namespace ZombieSharp
                 if (!IsPlayerAlive(target))
                 {
                     if (targets.Players.Count < 2)
-                        info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} target {target.PlayerName} is not alive.");
+                        info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["target_notalive", target.PlayerName]);
 
                     continue;
                 }
@@ -54,7 +54,7 @@ namespace ZombieSharp
                 if (IsClientZombie(target))
                 {
                     if (targets.Players.Count < 2)
-                        info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} target {target.PlayerName} is already zombie.");
+                        info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["target_alreadyzombie", target.PlayerName]);
 
                     continue;
                 }
@@ -62,10 +62,10 @@ namespace ZombieSharp
                 InfectClient(target, null, false, true);
 
                 if (targets.Players.Count < 2)
-                    info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Successfully infected {target.PlayerName}");
+                    info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["infect_success", target.PlayerName]);
             }
 
-            info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Successfully infected group.");
+            info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["infect_success_group"]);
         }
 
         [RequiresPermissions(@"css/slay")]
@@ -73,7 +73,7 @@ namespace ZombieSharp
         {
             if (info.ArgCount <= 1)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Usage: css_zs_human <playername>.");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["usage_human"]);
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace ZombieSharp
 
             if (targets.Players.Count <= 0)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Couldn't find any client contain with that name.");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["no_target_found"]);
                 return;
             }
 
@@ -93,7 +93,7 @@ namespace ZombieSharp
                 if (!IsPlayerAlive(target))
                 {
                     if (targets.Players.Count < 2)
-                        info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} target {target.PlayerName} is not alive.");
+                        info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["target_notalive", target.PlayerName]);
 
                     continue;
                 }
@@ -101,7 +101,7 @@ namespace ZombieSharp
                 if (IsClientHuman(target))
                 {
                     if (targets.Players.Count < 2)
-                        info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} target {target.PlayerName} is already human.");
+                        info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["target_alreadyhuman", target.PlayerName]);
 
                     continue;
                 }
@@ -109,9 +109,9 @@ namespace ZombieSharp
                 HumanizeClient(target, true);
 
                 if (targets.Players.Count < 2)
-                    info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Successfully humanized {target.PlayerName}");
+                    info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["human_success", target.PlayerName]);
             }
-            info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Successfully humanized group.");
+            info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["human_success_group"]);
         }
 
         private void ZTeleClientCommand(CCSPlayerController client, CommandInfo info)
@@ -121,17 +121,26 @@ namespace ZombieSharp
 
             if (!IsPlayerAlive(client))
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} This feature requires that you are alive.");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["need_alive"]);
                 return;
             }
 
-            client.PrintToCenter("You will be teleported back to spawn in 5 seconds.");
+            var opposite = IsClientHuman(client);
+
+            client.PrintToCenter(Localizer["teleport_initial"]);
 
             AddTimer(5.0f, () =>
             {
+                // if get infect before
+                if (opposite != IsClientHuman(client))
+                    return;
+
+                if (!client.PawnIsAlive)
+                    return;
+
                 ZTele_TeleportClientToSpawn(client);
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Teleported back to spawn.");
-                client.PrintToCenter("You have been teleported back to spawn.");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["teleport_success_chat"]);
+                client.PrintToCenter(Localizer["teleport_success_center"]);
             });
         }
 
@@ -274,15 +283,15 @@ namespace ZombieSharp
             if (!client.IsValid)
                 return;
 
-            if (CVAR_RespawnTimer.Value <= 0.0)
+            if (CVAR_RespawnTimer.Value <= 0.0 || !RespawnEnable)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Current round has disabled respawning!");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["zspawn_norespawn"]);
                 return;
             }
 
             if (client.PawnIsAlive)
             {
-                info.ReplyToCommand($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} This feature required you to be dead first!");
+                info.ReplyToCommand(Localizer["zsharp_prefix"] + Localizer["zspawn_needdead"]);
                 return;
             }
 

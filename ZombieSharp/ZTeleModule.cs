@@ -32,6 +32,9 @@
 
         public void ZTele_TeleportClientToSpawn(CCSPlayerController client)
         {
+            if (!client.PawnIsAlive)
+                return;
+
             var playerpawn = client.PlayerPawn.Value;
 
             var position = ClientSpawnDatas[client.Slot].PlayerPosition;

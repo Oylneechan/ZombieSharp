@@ -111,6 +111,8 @@ namespace ZombieSharp
 
                     else
                         clientPawn.Health += classData.Regen_Amount;
+
+                    Utilities.SetStateChanged(clientPawn, "CBaseEntity", "m_iHealth");
                 },
                 TimerFlags.REPEAT);
             }
@@ -136,9 +138,9 @@ namespace ZombieSharp
 
         public void PlayerClassMainMenu(CCSPlayerController client)
         {
-            var mainmenu = new ChatMenu($"{ChatColors.DarkBlue}[Z:Sharp] Player Class Main Menu");
-            mainmenu.AddMenuOption("Zombie Class", (client, option) => PlayerClassSelectMenu(client, 0));
-            mainmenu.AddMenuOption("Human Class", (client, option) => PlayerClassSelectMenu(client, 1));
+            var mainmenu = new ChatMenu(Localizer["playerclass_mainmenu"]);
+            mainmenu.AddMenuOption(Localizer["playerclass_zombie_option"], (client, option) => PlayerClassSelectMenu(client, 0));
+            mainmenu.AddMenuOption(Localizer["playerclass_human_option"], (client, option) => PlayerClassSelectMenu(client, 1));
             MenuManager.OpenChatMenu(client, mainmenu);
         }
 
@@ -147,10 +149,10 @@ namespace ZombieSharp
             string title;
 
             if (team == 0)
-                title = $" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Zombie Class Selection (Current: {ChatColors.Green}{PlayerClassDatas.PlayerClasses[ClientPlayerClass[client.Slot].ZombieClass].Name}{ChatColors.Default})";
+                title = Localizer["zsharp_prefix"] + Localizer["current_zombieclass", PlayerClassDatas.PlayerClasses[ClientPlayerClass[client.Slot].ZombieClass].Name];
 
             else
-                title = $" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Human Class Selection (Current: {ChatColors.Green}{PlayerClassDatas.PlayerClasses[ClientPlayerClass[client.Slot].HumanClass].Name}{ChatColors.Default})";
+                title = Localizer["zsharp_prefix"] + Localizer["current_humanclass", PlayerClassDatas.PlayerClasses[ClientPlayerClass[client.Slot].HumanClass].Name];
 
             var selectmenu = new ChatMenu(title);
             var menuhandle = (CCSPlayerController client, ChatMenuOption option) =>
@@ -178,7 +180,7 @@ namespace ZombieSharp
 
                 CreatePlayerSettings(updateDB).Wait();
 
-                client.PrintToChat($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} You have selected a new class, the class you have selected will be applied in the next spawn!");
+                client.PrintToChat(Localizer["zsharp_prefix"] + Localizer["playerclass_update"]);
             };
 
             foreach (var playerclass in PlayerClassDatas.PlayerClasses)

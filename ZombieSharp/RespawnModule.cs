@@ -36,7 +36,7 @@
 
             else
             {
-                client.PrintToChat($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} You're no longer protected.");
+                client.PrintToChat(Localizer["zsharp_prefix"] + Localizer["nologer_protected"]);
                 client.PlayerPawn.Value.VelocityModifier = ClientProtected[client.Slot].Velocity;
                 client.PlayerPawn.Value.GravityScale = 1.0f;
             }
@@ -47,13 +47,13 @@
             if ((!force && !RespawnEnable) || (force && value))
             {
                 //ForceRespawnAllDeath();
-                Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Respawn has been enabled");
+                Server.PrintToChatAll(Localizer["zsharp_prefix"] + Localizer["respawn_enable"]);
                 RespawnEnable = true;
             }
             else
             {
                 RespawnEnable = false;
-                Server.PrintToChatAll($" {ChatColors.Green}[Z:Sharp]{ChatColors.Default} Respawn has been disabled");
+                Server.PrintToChatAll(Localizer["zsharp_prefix"] + Localizer["respawn_disable"]);
                 //CheckGameStatus();
             }
         }
