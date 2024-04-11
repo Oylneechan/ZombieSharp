@@ -27,10 +27,19 @@ namespace ZombieSharp
             RegisterListener<Listeners.OnServerPrecacheResources>(OnPrecacheResources);
         }
 
+        // bot can only be initial here only
         private void OnClientPutInServer(int client)
         {
             var player = Utilities.GetPlayerFromSlot(client);
 
+            if (!player.IsBot)
+                return;
+
+            InitialClientData(player);
+        }
+
+        private void InitialClientData(CCSPlayerController player)
+        {
             int clientindex = player.Slot;
 
             ClientSpawnDatas.Add(clientindex, new ClientSpawnData());
@@ -53,9 +62,13 @@ namespace ZombieSharp
             TopDefenderOnPutInServer(player);
         }
 
+        // Normal player will be hook here.
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
         {
             var client = @event.Userid;
+
+            if (!client.IsBot)
+                InitialClientData(client);
 
             PlayerSettingsAuthorized(client).Wait();
             return HookResult.Continue;
@@ -221,6 +234,9 @@ namespace ZombieSharp
 
         private HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
         {
+            if(@event.Userid.Slot == 32766)
+                return HookResult.Continue;
+
             if (ZombieSpawned)
             {
                 var client = @event.Userid;
@@ -256,6 +272,9 @@ namespace ZombieSharp
 
         private HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
         {
+            if (@event.Userid.Slot == 32766)
+                return HookResult.Continue;
+
             var client = @event.Userid;
             var attacker = @event.Attacker;
             var weapon = @event.Weapon;
