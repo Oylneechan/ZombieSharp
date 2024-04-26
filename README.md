@@ -1,4 +1,5 @@
 # ZombieSharp
+<b>Note 04/26/2024:This Project is now paused, as I'm currently learning to become Full-Stack Developer. After I get a new job, I will continue this project again.</b>
 <b>This project is linux focusing as Windows has a lot issues with Virtual Functions. However, if Windows issue is solved, the plugin will mostly work fine.</b>
 
 Zombie-Sharp is a Zombie Mode plugin for CS2 referencing the features and functions from the previous SourcePawn Zombie:Reloaded plugin. You can say this is the Zombie:Reloaded remake but in C#. Here is the list of features.
