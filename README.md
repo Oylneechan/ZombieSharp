@@ -1,6 +1,6 @@
 # ZombieSharp
 <b>Note 04/26/2024: This Project is now paused, as I'm currently learning to become Full-Stack Developer. After I get a new job, I will continue this project again.</b>
-<b>Note 05/02/2024: This Repository will remain as archive. as the main repository is finally available again. https://github.com/Oylsister/ZombieSharp/ 
+<b>Note 05/02/2024: This Repository will remain as archive. as the main repository is finally available again. https://github.com/Oylsister/ZombieSharp/</b> 
 
 <b>This project is linux focusing as Windows has a lot issues with Virtual Functions. However, if Windows issue is solved, the plugin will mostly work fine.</b>
 
